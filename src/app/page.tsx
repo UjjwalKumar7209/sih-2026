@@ -244,76 +244,74 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col justify-between select-none">
-      
-      {/* Header section (Brutalist Style, solid background, strong bottom border) */}
-      <header className="brutalist-header font-telemetry select-none">
+       {/* Header section (Brutalist Style, solid background, strong bottom border) */}
+      <header className="brutalist-header p-2 sm:p-4 font-telemetry select-none flex flex-row items-center justify-between gap-1.5 sm:gap-4">
         {/* Left Side: Clean Monospace Brand Logo */}
-        <div className="flex items-center gap-3">
-          <div className="bg-[#e04300] w-3 h-6 border border-black"></div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="bg-[#e04300] w-2 h-4 sm:w-3 sm:h-6 border border-black"></div>
           <div>
-            <div className="text-sm font-extrabold tracking-widest text-zinc-950 uppercase font-mono">
+            <div className="text-xs sm:text-sm font-extrabold tracking-wider sm:tracking-widest text-zinc-950 uppercase font-mono">
               INDUSTRIAL FIRE AI
             </div>
-            <div className="text-[9px] text-zinc-550 uppercase tracking-wider font-bold">
+            <div className="hidden md:block text-[9px] text-zinc-550 uppercase tracking-wider font-bold">
               Satellite Thermal Telemetry & Diagnostics
             </div>
           </div>
         </div>
 
-
-
         {/* Right Side: Integrated Status Panel */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           {/* Download App Button */}
           <button 
             onClick={handleInstallPWA}
-            className="brutalist-button py-1 px-3 flex items-center gap-1.5 text-xs text-black border border-black hover:bg-black hover:text-white font-mono transition-colors"
+            className="brutalist-button py-1 px-1.5 sm:px-2.5 flex items-center gap-1 text-[9px] font-bold text-black border border-black hover:bg-black hover:text-white font-mono transition-colors shrink-0"
             title="Install this application locally"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Download App</span>
+            <Download className="w-3 h-3" />
+            <span className="hidden sm:inline">Download App</span>
           </button>
 
           {/* Status Dot */}
-          <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--border)] p-1 px-3">
-            <span className={`w-2 h-2 rounded-full inline-block ${
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-[var(--surface)] border border-[var(--border)] p-1 px-1.5 sm:px-2.5 shrink-0">
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${
               mode === 'LIVE' ? 'bg-[#008f47] animate-pulse' : 'bg-[#b56b00]'
             }`}></span>
-            <span className="text-[10px] font-extrabold text-zinc-700 tracking-wider">
-              {mode} FEED
+            <span className="text-[9px] font-extrabold text-zinc-700 tracking-wider">
+              <span className="hidden sm:inline">{mode} FEED</span>
+              <span className="inline sm:hidden">{mode}</span>
             </span>
           </div>
 
           {/* Segmented Mode Switcher */}
-          <div className="flex border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[9px] font-bold">
+          <div className="flex border border-[var(--border)] bg-[var(--surface)] p-0.5 text-[9px] font-bold shrink-0">
             <button 
               onClick={() => fetchTelemetry('LIVE')}
-              className={`px-3 py-1 uppercase transition-all ${
-                mode === 'LIVE' ? 'bg-black text-white' : 'text-zinc-650 hover:text-black'
+              className={`px-1.5 sm:px-2.5 py-0.5 uppercase transition-all ${
+                mode === 'LIVE' ? 'bg-black text-white' : 'text-zinc-655 hover:text-black'
               }`}
               disabled={loading}
             >
-              Go Live
+              Live
             </button>
             <button 
               onClick={() => fetchTelemetry('DEMO')}
-              className={`px-3 py-1 uppercase transition-all ${
-                mode === 'DEMO' ? 'bg-black text-white' : 'text-zinc-650 hover:text-black'
+              className={`px-1.5 sm:px-2.5 py-0.5 uppercase transition-all ${
+                mode === 'DEMO' ? 'bg-black text-white' : 'text-zinc-655 hover:text-black'
               }`}
               disabled={loading}
             >
-              Run Demo
+              Demo
             </button>
           </div>
 
           {/* Clean Refresh Icon */}
           <button 
             onClick={() => fetchTelemetry(mode)}
-            className="brutalist-button py-1 px-2.5 flex items-center justify-center text-zinc-700 hover:text-black"
+            className="brutalist-button py-1 px-1.5 sm:px-2.5 flex items-center justify-center text-zinc-700 hover:text-black shrink-0"
             title="Reload telemetry data feed"
             disabled={loading}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </header>
