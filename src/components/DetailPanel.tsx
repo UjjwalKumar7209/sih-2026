@@ -1,7 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Flame, MapPin, TreePine, Factory, Activity, Clock } from 'lucide-react';
+import { 
+  Shield, 
+  Flame, 
+  MapPin, 
+  TreePine, 
+  Factory, 
+  Activity, 
+  Clock,
+  CloudRain,
+  Thermometer,
+  Droplets,
+  AlertTriangle,
+  Sprout,
+  Home
+} from 'lucide-react';
 
 interface Detection {
   id?: string;
@@ -27,14 +41,30 @@ interface Detection {
   true_label: number | null;
   prediction: number;
   probability: number;
+  temperature?: number;
+  humidity?: number;
+  rainProbability?: number;
+  vegetationType?: string;
+  fireRiskScore?: number;
+  fireRiskRating?: 'LOW' | 'MODERATE' | 'HIGH' | 'EXTREME';
+  settlementName?: string;
+  settlementDistanceKm?: number;
+  settlementType?: string;
 }
 
 interface DetailPanelProps {
   detection: Detection | null;
   onUpdateDetectionOSM: (updatedDetection: Detection) => void;
+  notifiedDetections?: string[];
+  onNotifyIndustry?: (d: Detection) => void;
 }
 
-export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailPanelProps) {
+export default function DetailPanel({ 
+  detection, 
+  onUpdateDetectionOSM,
+  notifiedDetections = [],
+  onNotifyIndustry
+}: DetailPanelProps) {
   const [osmLoading, setOsmLoading] = useState(false);
   const [osmError, setOsmError] = useState<string | null>(null);
 
@@ -84,7 +114,10 @@ export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailP
             ...detection,
             osm_industrial_nearby: data.osm_industrial_nearby,
             osm_distance_km: data.osm_distance_km,
-            osm_type: data.osm_name // Map name to type for rendering
+            osm_type: data.osm_name, // Map name to type for rendering
+            settlementName: data.osm_settlement_name || detection.settlementName,
+            settlementDistanceKm: data.osm_settlement_distance !== undefined ? data.osm_settlement_distance : detection.settlementDistanceKm,
+            settlementType: data.osm_settlement_type || detection.settlementType
           });
         })
         .catch((err) => {
@@ -122,7 +155,7 @@ export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailP
   };
 
   return (
-    <div className="brutalist-card h-full flex flex-col justify-between min-h-[350px] font-telemetry">
+    <div className="brutalist-card h-full flex flex-col justify-between min-h-[350px] font-telemetry overflow-y-auto pr-1">
       <div>
         {/* Header telemetry readings */}
         <div className="flex justify-between items-start border-b border-zinc-800 pb-3 mb-4">
@@ -236,6 +269,19 @@ export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailP
               </span>
             </div>
 
+            {/* Vegetation Type */}
+            {detection.vegetationType && (
+              <div className="flex justify-between items-center py-1">
+                <span className="text-zinc-550 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+                  <Sprout className="w-3.5 h-3.5 text-zinc-500" />
+                  Vegetation Type
+                </span>
+                <span className="font-bold text-zinc-800 text-right">
+                  {detection.vegetationType}
+                </span>
+              </div>
+            )}
+
             {/* OSM Context */}
             <div className="flex justify-between items-start py-1">
               <span className="text-zinc-500 uppercase text-[10px] tracking-wider flex items-center gap-1.5 mt-0.5">
@@ -266,9 +312,76 @@ export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailP
               </div>
             </div>
 
+            {/* Nearest Settlement */}
+            <div className="flex justify-between items-start py-1 border-t border-zinc-100/10 pt-1.5">
+              <span className="text-zinc-500 uppercase text-[10px] tracking-wider flex items-center gap-1.5 mt-0.5">
+                <Home className="w-3.5 h-3.5 text-zinc-500" />
+                Nearest Settlement
+              </span>
+              <div className="text-right max-w-[65%]">
+                {osmLoading ? (
+                  <span className="text-zinc-500 text-[10px] animate-pulse">QUERYING OVERPASS API...</span>
+                ) : (
+                  <div>
+                    <span className="font-bold text-zinc-800 block text-xs truncate">
+                      {detection.settlementName || 'Unknown Settlement'}
+                    </span>
+                    {detection.settlementDistanceKm !== undefined && (
+                      <span className="text-[10px] text-zinc-600 block font-mono">
+                        Distance: {detection.settlementDistanceKm.toFixed(1)} km ({detection.settlementType || 'village'})
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
 
-          {/* Section 4: Telemetry Meta */}
+          {/* Section 4: Environmental & Hazard Telemetry */}
+          {detection.temperature !== undefined && (
+            <div className="space-y-2 border-t border-[var(--border)] pt-3">
+              <h4 className="font-bold text-zinc-650 uppercase text-[10px] tracking-wider mb-2 flex items-center gap-1.5">
+                <Thermometer className="w-3.5 h-3.5 text-zinc-500" />
+                Environmental Metrics
+              </h4>
+              
+              <div className="grid grid-cols-3 gap-2 mt-1.5 text-center">
+                <div className="border border-[var(--border)] p-2 bg-[var(--background)]">
+                  <span className="text-zinc-500 text-[8px] uppercase block">Temp</span>
+                  <span className="font-mono text-zinc-800 font-bold text-[10px]">{detection.temperature.toFixed(1)}°C</span>
+                </div>
+                <div className="border border-[var(--border)] p-2 bg-[var(--background)]">
+                  <span className="text-zinc-500 text-[8px] uppercase block">Humidity</span>
+                  <span className="font-mono text-zinc-800 font-bold text-[10px]">{detection.humidity}%</span>
+                </div>
+                <div className="border border-[var(--border)] p-2 bg-[var(--background)]">
+                  <span className="text-zinc-500 text-[8px] uppercase block">Rain Prob</span>
+                  <span className="font-mono text-zinc-800 font-bold text-[10px]">{detection.rainProbability}%</span>
+                </div>
+              </div>
+
+              {/* Fire Risk Rating */}
+              {detection.fireRiskScore !== undefined && (
+                <div className="flex justify-between items-center py-1 mt-1 border-t border-dashed border-[var(--border)] pt-2">
+                  <span className="text-zinc-550 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-zinc-500" />
+                    Fire Hazard Risk
+                  </span>
+                  <span className={`brutalist-badge font-bold px-2 py-0.5 text-[9px] ${
+                    detection.fireRiskRating === 'EXTREME' ? 'bg-[#ff4500] text-white border-[#ff4500]' :
+                    detection.fireRiskRating === 'HIGH' ? 'bg-[#e05300] text-white border-[#e05300]' :
+                    detection.fireRiskRating === 'MODERATE' ? 'bg-[#ffbf00] text-black border-black' :
+                    'bg-zinc-200 text-zinc-700 border-zinc-450'
+                  }`}>
+                    {detection.fireRiskRating} ({detection.fireRiskScore}/100)
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Section 5: Telemetry Meta */}
           <div className="border-t border-[var(--border)] pt-3 text-[10px] text-zinc-500 grid grid-cols-2 gap-2">
             <div>
               <span className="uppercase text-[8px] text-zinc-650 block">Acquisition Date / Time</span>
@@ -285,6 +398,22 @@ export default function DetailPanel({ detection, onUpdateDetectionOSM }: DetailP
           </div>
 
         </div>
+      </div>
+
+      {/* Alert Dispatch Console */}
+      <div className="mt-4 pt-3 border-t border-[var(--border)]">
+        {notifiedDetections.includes(`${detection.latitude.toFixed(4)},${detection.longitude.toFixed(4)}`) ? (
+          <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 p-2 text-center font-bold font-mono text-[10px] uppercase tracking-wider">
+            Critical Fire Warning Dispatched ✓
+          </div>
+        ) : (
+          <button
+            onClick={() => onNotifyIndustry && onNotifyIndustry(detection)}
+            className="w-full bg-[#e04300] hover:bg-[#b83500] text-white py-2 px-3 font-bold font-mono text-[10px] uppercase tracking-wider transition-colors border border-zinc-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] cursor-pointer"
+          >
+            Notify Industry & Dispatch Warnings
+          </button>
+        )}
       </div>
 
       <div className="mt-4 pt-3 border-t border-[var(--border)] text-[9px] text-zinc-500 leading-normal">

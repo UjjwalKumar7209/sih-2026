@@ -95,10 +95,10 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
   const maxLcCount = Math.max(...topLcs.map((l) => l.count), 1);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 font-telemetry">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 font-telemetry h-full">
       
       {/* Block 1: AI Classification Ratio */}
-      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between">
+      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between h-full">
         <div>
           <h4 className="font-bold text-[10px] text-zinc-650 uppercase tracking-wider mb-2">Classification Distribution</h4>
           <span className="text-2xl font-bold font-telemetry tracking-tight text-zinc-900">{totalCount}</span>
@@ -140,7 +140,7 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
       </div>
 
       {/* Block 2: FRP Distribution Chart */}
-      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between">
+      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between h-full">
         <div>
           <h4 className="font-bold text-[10px] text-zinc-650 uppercase tracking-wider mb-3">FRP Profile (MW)</h4>
         </div>
@@ -155,7 +155,7 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
                 <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 bg-white border border-zinc-950 text-black font-mono text-[9px] px-1 py-0.5 z-10 transition-opacity pointer-events-none">
                   {group.count} pts
                 </span>
-                <div className="w-8 bg-[var(--background)] border border-[var(--border)] flex items-end h-20">
+                <div className="w-full max-w-[28px] bg-[var(--background)] border border-[var(--border)] flex items-end h-20">
                   {group.count > 0 && (
                     <div 
                       className="w-full bg-[#e04300] border-t border-white/20" 
@@ -175,7 +175,7 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
       </div>
 
       {/* Block 3: Persistence Counts Histogram */}
-      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between">
+      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between h-full">
         <div>
           <h4 className="font-bold text-[10px] text-zinc-655 uppercase tracking-wider mb-3">Site Persistence Scale</h4>
         </div>
@@ -190,7 +190,7 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
                 <span className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 bg-white border border-zinc-950 text-black font-mono text-[9px] px-1 py-0.5 z-10 transition-opacity pointer-events-none">
                   {group.count} pts
                 </span>
-                <div className="w-8 bg-[var(--background)] border border-[var(--border)] flex items-end h-20">
+                <div className="w-full max-w-[28px] bg-[var(--background)] border border-[var(--border)] flex items-end h-20">
                   {group.count > 0 && (
                     <div 
                       className="w-full bg-zinc-400 border-t border-black/10" 
@@ -210,7 +210,7 @@ export default function AnalyticsPanel({ detections }: AnalyticsPanelProps) {
       </div>
 
       {/* Block 4: Land Cover Association (Industrial Only) */}
-      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between">
+      <div className="brutalist-card p-4 border border-[var(--border)] flex flex-col justify-between h-full">
         <div>
           <h4 className="font-bold text-[10px] text-zinc-650 uppercase tracking-wider mb-3">Top Land Cover Associations</h4>
         </div>

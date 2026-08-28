@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
     const overpassUrl = 'https://overpass-api.de/api/interpreter';
     
-    // Search around 5000m radius
+    // Search around 5000m radius for industrial and 10000m for settlements
     const query = `
       [out:json][timeout:30];
       (
@@ -45,6 +45,11 @@ export async function GET(request: Request) {
         nwr["man_made"="works"](around:5000,${lat},${lon});
         nwr["power"="plant"](around:5000,${lat},${lon});
         nwr["man_made"="storage_tank"](around:5000,${lat},${lon});
+      );
+      out center tags;
+      (
+        nwr["place"~"city|town|village|hamlet"](around:10000,${lat},${lon});
+        nwr["landuse"="residential"](around:10000,${lat},${lon});
       );
       out center tags;
     `;
@@ -80,6 +85,10 @@ export async function GET(request: Request) {
     let nearestType = 'unknown';
     let nearestName = 'Unnamed industrial site';
 
+    let nearestSettlementDistance = Infinity;
+    let nearestSettlementName = 'Unknown settlement';
+    let nearestSettlementType = 'unknown';
+
     for (const element of elements) {
       let fLat = 0;
       let fLon = 0;
@@ -95,40 +104,48 @@ export async function GET(request: Request) {
       }
 
       const dist = distanceKm(lat, lon, fLat, fLon);
+      const tags = element.tags || {};
+      
+      const isSettlement = tags.place || tags.landuse === 'residential';
 
-      if (dist <= 5 && dist < nearestDistance) {
-        nearestDistance = dist;
-        const tags = element.tags || {};
-        nearestType =
-          tags.power ||
-          tags.industrial ||
-          tags.landuse ||
-          tags.man_made ||
-          'industrial_area';
-        nearestName =
-          tags['name:en'] ||
-          tags.name ||
-          (tags.power === 'plant' ? 'Power Plant' : 'Industrial Facility');
+      if (isSettlement) {
+        if (dist <= 10 && dist < nearestSettlementDistance) {
+          nearestSettlementDistance = dist;
+          nearestSettlementType = tags.place || 'residential';
+          nearestSettlementName = tags['name:en'] || tags.name || (tags.place ? `Local ${tags.place}` : 'Residential Area');
+        }
+      } else {
+        if (dist <= 5 && dist < nearestDistance) {
+          nearestDistance = dist;
+          nearestType =
+            tags.power ||
+            tags.industrial ||
+            tags.landuse ||
+            tags.man_made ||
+            'industrial_area';
+          nearestName =
+            tags['name:en'] ||
+            tags.name ||
+            (tags.power === 'plant' ? 'Power Plant' : 'Industrial Facility');
+        }
       }
     }
 
-    if (nearestDistance !== Infinity) {
-      return NextResponse.json({
-        osm_status: 'success',
-        osm_industrial_nearby: 1,
-        osm_distance_km: Math.round(nearestDistance * 1000) / 1000,
-        osm_type: nearestType,
-        osm_name: nearestName
-      });
-    } else {
-      return NextResponse.json({
-        osm_status: 'success',
-        osm_industrial_nearby: 0,
-        osm_distance_km: null,
-        osm_type: null,
-        osm_name: 'No industrial facilities found within 5km'
-      });
+    const responseData: any = {
+      osm_status: 'success',
+      osm_industrial_nearby: nearestDistance !== Infinity ? 1 : 0,
+      osm_distance_km: nearestDistance !== Infinity ? Math.round(nearestDistance * 1000) / 1000 : null,
+      osm_type: nearestDistance !== Infinity ? nearestType : null,
+      osm_name: nearestDistance !== Infinity ? nearestName : 'No industrial facilities found within 5km'
+    };
+
+    if (nearestSettlementDistance !== Infinity) {
+      responseData.osm_settlement_name = nearestSettlementName;
+      responseData.osm_settlement_distance = Math.round(nearestSettlementDistance * 1000) / 1000;
+      responseData.osm_settlement_type = nearestSettlementType;
     }
+
+    return NextResponse.json(responseData);
 
   } catch (err: any) {
     console.error('OSM context API Route Error:', err);

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   ShieldAlert, 
   RefreshCw, 
@@ -12,6 +13,7 @@ import {
 import MapComponent from '@/components/MapComponent';
 import DetailPanel from '@/components/DetailPanel';
 import AnalyticsPanel from '@/components/AnalyticsPanel';
+import { getEcoData } from '@/utils/ecoData';
 
 interface Detection {
   id?: string;
@@ -37,6 +39,16 @@ interface Detection {
   true_label: number | null;
   prediction: number;
   probability: number;
+  // Weather and ecological parameters
+  temperature?: number;
+  humidity?: number;
+  rainProbability?: number;
+  vegetationType?: string;
+  fireRiskScore?: number;
+  fireRiskRating?: 'LOW' | 'MODERATE' | 'HIGH' | 'EXTREME';
+  settlementName?: string;
+  settlementDistanceKm?: number;
+  settlementType?: string;
 }
 
 export default function Dashboard() {
@@ -52,8 +64,31 @@ export default function Dashboard() {
   // Interactive Filters
   const [filterType, setFilterType] = useState<'all' | 'industrial' | 'other'>('all');
   const [minFRP, setMinFRP] = useState<number>(0);
-  const [minPersistence, setMinPersistence] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Notifications state
+  const [notifiedDetections, setNotifiedDetections] = useState<string[]>([]);
+
+  const handleNotifyIndustry = (d: Detection) => {
+    const locKey = `${d.latitude.toFixed(4)},${d.longitude.toFixed(4)}`;
+    const confirmNotify = window.confirm(
+      `ALERT DISPATCH REQUEST:\n\n` +
+      `System classifies this location as a high-hazard industrial thermal anomaly.\n` +
+      `FRP: ${d.frp.toFixed(1)} MW\n` +
+      `Coordinates: ${locKey}\n` +
+      `Landcover: ${d.land_cover_name}\n\n` +
+      `Do you want to dispatch a critical fire danger warning notification to the facility?`
+    );
+
+    if (confirmNotify) {
+      setNotifiedDetections((prev) => [...prev, locKey]);
+      alert(
+        `ALERT SENT SUCCESSFULLY!\n\n` +
+        `Warning message sent to facility near ${locKey}:\n` +
+        `"URGENT: Automated geospatial thermal monitors detected high-hazard emissions (${d.frp.toFixed(1)} MW) at your location. High risk of containment fire. Verify equipment and activate cooling systems immediately."`
+      );
+    }
+  };
 
   // Register Service Worker and PWA Install Prompt handlers
   useEffect(() => {
@@ -109,6 +144,20 @@ export default function Dashboard() {
       if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
       const data = await res.json();
       
+      const augmentDetections = (dList: any[]): Detection[] => {
+        return dList.map((d) => {
+          const eco = getEcoData(
+            d.latitude,
+            d.longitude,
+            d.daynight,
+            d.land_cover_class,
+            d.land_cover_name,
+            d.frp
+          );
+          return { ...d, ...eco };
+        });
+      };
+
       let fetchedDetections: Detection[] = [];
       
       if (targetMode === 'LIVE') {
@@ -149,11 +198,11 @@ export default function Dashboard() {
         
         // Run live classifications
         const processed = await runLiveInference(fetchedDetections);
-        setDetections(processed);
+        setDetections(augmentDetections(processed));
       } else {
         setMode('DEMO');
         fetchedDetections = data || [];
-        setDetections(fetchedDetections);
+        setDetections(augmentDetections(fetchedDetections));
       }
 
       // Reset selection when loading new dataset
@@ -167,7 +216,22 @@ export default function Dashboard() {
         const fallbackRes = await fetch('/api/detections?limit=1500');
         if (fallbackRes.ok) {
           const fallbackData = await fallbackRes.json();
-          setDetections(fallbackData);
+          
+          const augmentDetections = (dList: any[]): Detection[] => {
+            return dList.map((d) => {
+              const eco = getEcoData(
+                d.latitude,
+                d.longitude,
+                d.daynight,
+                d.land_cover_class,
+                d.land_cover_name,
+                d.frp
+              );
+              return { ...d, ...eco };
+            });
+          };
+
+          setDetections(augmentDetections(fallbackData));
         }
       } catch (fallbackErr) {
         console.error('Failed to load fallback detections:', fallbackErr);
@@ -214,10 +278,7 @@ export default function Dashboard() {
     // 2. Minimum FRP
     if (d.frp < minFRP) return false;
 
-    // 3. Minimum Persistence
-    if (d.persistence_count < minPersistence) return false;
-
-    // 4. Coordinates search query (lat,lon)
+    // 3. Coordinates search query (lat,lon)
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const coords = `${d.latitude.toFixed(4)},${d.longitude.toFixed(4)}`;
@@ -237,9 +298,12 @@ export default function Dashboard() {
     (d) => getDetectionPriority(d) === 'HIGH'
   ).length;
 
-  // In-app Alert Feed: Find up to 5 High-Priority alerts
+  // In-app Alert Feed: Find up to 5 High-Priority or Medium-Priority alerts
   const highPriorityAlerts = filteredDetections
-    .filter((d) => getDetectionPriority(d) === 'HIGH')
+    .filter((d) => {
+      const pri = getDetectionPriority(d);
+      return pri === 'HIGH' || pri === 'MEDIUM';
+    })
     .slice(0, 5);
 
   return (
@@ -270,6 +334,13 @@ export default function Dashboard() {
             <Download className="w-3 h-3" />
             <span className="hidden sm:inline">Download App</span>
           </button>
+
+          <Link 
+            href="/about"
+            className="brutalist-button py-1 px-1.5 sm:px-2.5 flex items-center gap-1 text-[9px] font-bold text-black border border-black hover:bg-black hover:text-white font-mono transition-colors shrink-0"
+          >
+            About
+          </Link>
 
           {/* Status Dot */}
           <div className="flex items-center gap-1 sm:gap-1.5 bg-[var(--surface)] border border-[var(--border)] p-1 px-1.5 sm:px-2.5 shrink-0">
@@ -399,23 +470,6 @@ export default function Dashboard() {
                 {minFRP} MW
               </span>
             </div>
-
-            {/* Slider 2: Persistence Slider */}
-            <div className="flex items-center gap-2">
-              <span className="text-zinc-550 uppercase text-[10px] font-bold">Min Persistence:</span>
-              <input 
-                type="range" 
-                min="1" 
-                max="50" 
-                step="1"
-                value={minPersistence}
-                onChange={(e) => setMinPersistence(parseInt(e.target.value))}
-                className="w-24 accent-[#e04300]"
-              />
-              <span className="font-mono text-zinc-800 bg-[var(--surface-header)] border border-[var(--border)] px-1.5 py-0.5 rounded text-[10px]">
-                {minPersistence}
-              </span>
-            </div>
           </div>
 
           {/* Coordinate Search input */}
@@ -449,7 +503,6 @@ export default function Dashboard() {
               onSelectDetection={(d) => setSelectedDetection(d)}
               filterType={filterType}
               minFRP={minFRP}
-              minPersistence={minPersistence}
             />
           </div>
 
@@ -458,6 +511,8 @@ export default function Dashboard() {
             <DetailPanel 
               detection={selectedDetection}
               onUpdateDetectionOSM={handleUpdateDetectionOSM}
+              notifiedDetections={notifiedDetections}
+              onNotifyIndustry={handleNotifyIndustry}
             />
           </div>
         </section>
@@ -492,6 +547,23 @@ export default function Dashboard() {
                         <span>PERSISTENCE: {d.persistence_count}</span>
                         <span>LC: {d.land_cover_name}</span>
                       </div>
+                      <div className="mt-2 pt-1.5 border-t border-zinc-200/50 flex justify-end">
+                        {notifiedDetections.includes(`${d.latitude.toFixed(4)},${d.longitude.toFixed(4)}`) ? (
+                          <span className="text-green-600 font-bold uppercase tracking-wider text-[8px] flex items-center gap-0.5">
+                            Notified ✓
+                          </span>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNotifyIndustry(d);
+                            }}
+                            className="bg-[#e04300] hover:bg-[#b83500] text-white px-2 py-0.5 font-bold font-mono text-[8px] uppercase tracking-wider transition-colors border border-zinc-950 cursor-pointer"
+                          >
+                            Notify Industry
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -508,7 +580,7 @@ export default function Dashboard() {
           </div>
 
           {/* Right panel: SVG Charts Analytics */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 h-full">
             <AnalyticsPanel detections={filteredDetections} />
           </div>
 
@@ -530,17 +602,15 @@ export default function Dashboard() {
               <thead>
                 <tr>
                   <th>Coordinates</th>
-                  <th>Observation Time</th>
                   <th>FRP</th>
-                  <th>Persistence</th>
-                  <th>Land Cover</th>
+                  <th>Land Cover / Vegetation</th>
+                  <th>Weather (T / H / R)</th>
                   <th>Inference</th>
-                  <th>Priority</th>
+                  <th>Fire Risk</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredDetections.slice(0, 100).map((d, index) => {
-                  const pri = getDetectionPriority(d);
                   const isInd = d.prediction === 1;
                   const isSel = selectedDetection && 
                     Math.abs(selectedDetection.latitude - d.latitude) < 0.00001 &&
@@ -555,17 +625,16 @@ export default function Dashboard() {
                       <td className="font-mono text-zinc-800 text-xs">
                         {d.latitude.toFixed(4)}, {d.longitude.toFixed(4)}
                       </td>
-                      <td className="font-mono text-zinc-650 text-xs">
-                        {d.acq_date} @ {d.acq_time.toString().padStart(4, '0')}
-                      </td>
                       <td className="text-zinc-850 font-mono font-bold text-xs">
                         {d.frp.toFixed(2)} MW
                       </td>
-                      <td className="font-mono text-zinc-800 text-xs">
-                        {d.persistence_count}
+                      <td className="text-zinc-650 text-xs truncate max-w-[160px]">
+                        <div className="font-bold text-zinc-800">{d.land_cover_name}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{d.vegetationType || 'Unknown'}</div>
                       </td>
-                      <td className="text-zinc-650 text-xs truncate max-w-[140px]">
-                        {d.land_cover_name}
+                      <td className="font-mono text-zinc-850 text-xs">
+                        <div>{d.temperature?.toFixed(1)}°C / {d.humidity}%</div>
+                        <div className="text-[9px] text-zinc-500 mt-0.5">Rain: {d.rainProbability}%</div>
                       </td>
                       <td className="text-xs">
                         <span className={`font-bold uppercase ${isInd ? 'text-[#e04300]' : 'text-[#0077b6]'}`}>
@@ -576,11 +645,13 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td className="text-xs font-bold">
-                        <span className={
-                          pri === 'HIGH' ? 'text-[#e04300]' :
-                          pri === 'MEDIUM' ? 'text-[#b56b00]' : 'text-zinc-550'
-                        }>
-                          {pri}
+                        <span className={`px-1.5 py-0.5 font-mono border text-[9px] ${
+                          d.fireRiskRating === 'EXTREME' ? 'bg-red-50 text-red-700 border-red-400' :
+                          d.fireRiskRating === 'HIGH' ? 'bg-orange-50 text-orange-700 border-orange-400' :
+                          d.fireRiskRating === 'MODERATE' ? 'bg-amber-50 text-amber-700 border-amber-400' :
+                          'bg-zinc-50 text-zinc-600 border-zinc-300'
+                        }`}>
+                          {d.fireRiskRating} ({d.fireRiskScore})
                         </span>
                       </td>
                     </tr>
@@ -588,14 +659,14 @@ export default function Dashboard() {
                 })}
                 {filteredDetections.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center text-zinc-550 text-xs font-mono py-12 italic">
+                    <td colSpan={6} className="text-center text-zinc-550 text-xs font-mono py-12 italic">
                       NO RECORDS MATCHING TARGET CONTEXT FILTERS FOUND
                     </td>
                   </tr>
                 )}
                 {filteredDetections.length > 100 && (
                   <tr>
-                    <td colSpan={7} className="text-center text-zinc-550 text-[10px] font-mono py-2 bg-[var(--surface-header)]/35 uppercase tracking-widest">
+                    <td colSpan={6} className="text-center text-zinc-550 text-[10px] font-mono py-2 bg-[var(--surface-header)]/35 uppercase tracking-widest">
                       * Truncated feed to first 100 entries for browser render performance (Use sliders to filter coordinates)
                     </td>
                   </tr>

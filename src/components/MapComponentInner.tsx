@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import indiaBoundary from '../data/india_boundary.json';
 
 interface Detection {
   latitude: number;
@@ -26,6 +27,15 @@ interface Detection {
   true_label: number | null;
   prediction: number;
   probability: number;
+  temperature?: number;
+  humidity?: number;
+  rainProbability?: number;
+  vegetationType?: string;
+  fireRiskScore?: number;
+  fireRiskRating?: 'LOW' | 'MODERATE' | 'HIGH' | 'EXTREME';
+  settlementName?: string;
+  settlementDistanceKm?: number;
+  settlementType?: string;
 }
 
 interface MapProps {
@@ -34,7 +44,6 @@ interface MapProps {
   onSelectDetection: (d: Detection) => void;
   filterType: 'all' | 'industrial' | 'other';
   minFRP: number;
-  minPersistence: number;
 }
 
 export default function MapComponentInner({
@@ -43,7 +52,6 @@ export default function MapComponentInner({
   onSelectDetection,
   filterType,
   minFRP,
-  minPersistence,
 }: MapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -65,6 +73,16 @@ export default function MapComponentInner({
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
+    }).addTo(map);
+
+    // Add official India boundary overlay to highlight J&K as an integral part of India
+    L.geoJSON(indiaBoundary as any, {
+      style: {
+        color: '#18181b', // Solid dark zinc outline
+        weight: 2.5,
+        fillColor: 'transparent',
+        opacity: 0.85
+      }
     }).addTo(map);
 
     const markersLayer = L.featureGroup().addTo(map);
@@ -96,9 +114,6 @@ export default function MapComponentInner({
 
       // 2. Min FRP
       if (d.frp < minFRP) return false;
-
-      // 3. Min Persistence
-      if (d.persistence_count < minPersistence) return false;
 
       return true;
     });
@@ -155,7 +170,7 @@ export default function MapComponentInner({
       }
     });
 
-  }, [detections, filterType, minFRP, minPersistence, onSelectDetection]);
+  }, [detections, filterType, minFRP, onSelectDetection]);
 
   // Center map on selected detection
   useEffect(() => {

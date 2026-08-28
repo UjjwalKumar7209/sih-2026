@@ -71,7 +71,6 @@ Displays five critical numbers based on your current filters:
   * **Industrial:** Shows only anomalies classified by the model as industrial fires or structural flares (Class 1, marked in orange-red).
   * **Other:** Shows anomalies classified as vegetation/forest/wildfires/agricultural burning (Class 0, marked in blue).
 * **Min FRP Slider:** Filters out low-intensity anomalies. Dragging this to the right isolates high-energy thermal events (e.g. refineries, volcanic action, active heavy furnace vents).
-* **Min Persistence Slider:** Drag this to filter out transient events. Set it to $\ge 5$ to remove crop burning or short-lived forest fires, instantly isolating static industrial sources.
 * **Search Grid Input:** Enter coordinates (e.g. `22.4, 72.1`), ESA landcover class name (e.g., `Urban`), or nearest facility context to filter down matching points instantly.
 
 ### D. Map Component & GIS Visualization
@@ -102,7 +101,7 @@ Prepare these exact defenses to address typical evaluator critiques:
 > **Defense:** "Satellites do not return exact coordinate matches on subsequent orbits due to atmospheric refractions and path angles. To resolve this, we grouped the globe into a uniform grid of **0.01° cells** (roughly 1.1 km²). We calculated historical recurrence by mapping every satellite observation to its nearest grid cell. We pre-compiled this cell-to-count mapping into a JSON hash map (`src/data/persistence_lookup.json`). At runtime, we extract the coordinates, snap them to the grid, and retrieve the exact persistence count instantly."
 
 ### Q3: "What is the accuracy of your classification model?"
-> **Defense:** "Our model achieves approximately **84% validation accuracy** on historical records, trained on OSM-assisted and verified industrial facility locations. Since satellite data contains noise, our methodology page explicitly outlines a critical disclaimer: the system is designed to provide *decision-support signals* rather than absolute ground-truth incident confirmation. Ground validation is always recommended to verify satellite warnings."
+> **Defense:** "Our model achieves approximately **84% validation accuracy** on historical records, trained on OSM-assisted and verified industrial facility locations. Since satellite data contains noise, our documentation outlines a critical disclaimer: the system is designed to provide *decision-support signals* rather than absolute ground-truth incident confirmation. Ground validation is always recommended to verify satellite warnings."
 
 ### Q4: "How does your system query OpenStreetMap? Does it load a massive database?"
 > **Defense:** "No. Loading a global OSM GIS database is too heavy. Instead, our app queries the **Overpass API interpreter** dynamically on demand. When a user selects a specific hotspot, the server makes a live HTTP request to fetch industrial nodes/ways within a 5 km bounding box. We then parse the response, find the closest facility, and calculate the exact distance using the Haversine formula."
