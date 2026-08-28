@@ -1,0 +1,23 @@
+latitude,longitude,bright_ti4,scan,track,acq_date,acq_time,satellite,instrument,confidence,version,bright_ti5,frp,daynight,osm_status,osm_objects_found,industrial_nearby,nearest_industrial_km,nearest_industrial_type,nearest_industrial_name,land_cover_class,land_cover_name
+9.38904,78.88414,334.56,0.47,0.4,2026-08-26,801,N,VIIRS,l,2.0NRT,299.26,5.44,D,success,31,1,2.902,plant,Sai Regency Power Plant,30,Grassland
+9.38948,78.88505,336.31,0.47,0.4,2026-08-26,801,N,VIIRS,l,2.0NRT,299.69,6.1,D,success,31,1,2.903,plant,Sai Regency Power Plant,30,Grassland
+9.80408,78.17467,337.02,0.5,0.41,2026-08-26,801,N,VIIRS,n,2.0NRT,296.81,4.0,D,success,31,1,4.891,industrial,,20,Shrubland
+9.90823,78.08034,333.85,0.51,0.41,2026-08-26,801,N,VIIRS,n,2.0NRT,295.48,5.5,D,success,31,1,2.419,depot,TNSTC Ponmeni Bus depot,10,Tree cover
+9.90871,78.08326,333.9,0.51,0.41,2026-08-26,801,N,VIIRS,n,2.0NRT,295.44,5.83,D,success,31,1,2.108,depot,TNSTC Ponmeni Bus depot,40,Cropland
+10.05334,77.95324,348.01,0.51,0.41,2026-08-26,801,N,VIIRS,n,2.0NRT,296.96,10.17,D,success,17,1,3.527,storage_tank,,10,Tree cover
+12.13064,79.65323,333.44,0.41,0.37,2026-08-26,801,N,VIIRS,l,2.0NRT,306.63,24.35,D,success,17,0,,,,10,Tree cover
+13.84194,79.25305,330.21,0.41,0.37,2026-08-26,803,N,VIIRS,l,2.0NRT,296.56,5.29,D,success,17,0,,,,10,Tree cover
+14.2594,80.11615,332.94,0.39,0.36,2026-08-26,803,N,VIIRS,l,2.0NRT,301.84,5.44,D,success,17,1,0.394,port,NCT - Navayuga Container Terminal,60,Bare/sparse vegetation
+14.25997,80.11976,330.87,0.39,0.36,2026-08-26,803,N,VIIRS,l,2.0NRT,302.06,9.65,D,success,17,1,0.688,port,NCT - Navayuga Container Terminal,10,Tree cover
+15.17995,76.68201,334.96,0.51,0.41,2026-08-26,803,N,VIIRS,n,2.0NRT,296.78,3.33,D,success,40,1,1.368,steel_mill,Jindal Steel Works,60,Bare/sparse vegetation
+15.90841,79.10486,332.68,0.4,0.37,2026-08-26,803,N,VIIRS,l,2.0NRT,300.64,3.57,D,success,40,0,,,,40,Cropland
+16.40065,79.36692,335.87,0.39,0.36,2026-08-26,803,N,VIIRS,n,2.0NRT,297.3,4.44,D,success,40,0,,,,40,Cropland
+17.95717,80.79728,333.75,0.39,0.36,2026-08-26,803,N,VIIRS,n,2.0NRT,296.44,3.39,D,success,40,1,3.13,plant,,60,Bare/sparse vegetation
+18.54734,74.17914,332.83,0.42,0.45,2026-08-26,803,N,VIIRS,n,2.0NRT,294.44,5.43,D,success,40,1,0.59,industrial,,40,Cropland
+21.74366,83.84032,332.06,0.53,0.42,2026-08-26,805,N,VIIRS,n,2.0NRT,291.1,5.71,D,success,7,1,0.546,industrial,,60,Bare/sparse vegetation
+21.74819,83.84499,338.5,0.53,0.42,2026-08-26,805,N,VIIRS,n,2.0NRT,294.05,5.71,D,success,7,1,0.971,industrial,,60,Bare/sparse vegetation
+21.75594,83.84392,339.67,0.53,0.42,2026-08-26,805,N,VIIRS,n,2.0NRT,293.25,10.06,D,success,7,1,1.18,industrial,,80,Permanent water
+22.35679,82.30565,330.32,0.45,0.39,2026-08-26,805,N,VIIRS,n,2.0NRT,295.09,5.19,D,success,7,0,,,,60,Bare/sparse vegetation
+30.37163,73.89048,336.49,0.44,0.38,2026-08-26,807,N,VIIRS,n,2.0NRT,302.65,4.25,D,success,7,0,,,,10,Tree cover
+30.37266,73.89281,332.4,0.44,0.38,2026-08-26,807,N,VIIRS,l,2.0NRT,302.55,4.26,D,success,0,0,,,,40,Cropland
+33.57693,74.22216,330.71,0.4,0.37,2026-08-26,807,N,VIIRS,n,2.0NRT,299.53,2.99,D,success,0,0,,,,30,Grassland

@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --background: #f4f5f7;
+  --foreground: #090a10;
+  --surface: #ffffff;
+  --surface-header: #e4e6eb;
+  --border: #1a1b20;
+  --border-strong: #000000;
+  --text-muted: #555c6b;
+  
+  --primary-industrial: #e04300; /* Solid orange-red */
+  --secondary-other: #0077b6; /* Solid blue */
+  --warning: #b56b00; /* Solid amber */
+  --success: #008f47; /* Solid green */
+  --muted: #cbd5e1; /* Solid gray */
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Monospace fonts for telemetry and coordinates */
+.font-telemetry {
+  font-family: var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Brutalist style utility classes */
+.brutalist-container {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--background);
+}
+
+.brutalist-header {
+  background-color: var(--surface-header);
+  border-bottom: 2px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brutalist-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.brutalist-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 2px 2px 0px 0px var(--border);
+}
+
+.brutalist-border {
+  border: 1px solid var(--border);
+}
+
+.brutalist-border-strong {
+  border: 2px solid var(--border-strong);
+}
+
+.brutalist-button {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
+}
+
+.brutalist-button:hover {
+  background-color: var(--border-strong);
+  color: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.brutalist-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.brutalist-button.active {
+  background-color: var(--border-strong);
+  color: var(--surface);
+}
+
+.brutalist-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+}
+
+/* Custom scrollbar for brutalist look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-left: 1px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 1px solid var(--surface);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* Leaflet Map overrides for brutalist style */
+.leaflet-container {
+  background-color: #e4e6eb !important;
+  font-family: inherit;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  transition: all 0.15s ease;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--border-strong) !important;
+  color: var(--surface) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--border) !important;
+}
+
+/* Table styling */
+.brutalist-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.brutalist-table th {
+  background-color: var(--surface-header);
+  border-bottom: 2px solid var(--border);
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--foreground);
+}
+
+.brutalist-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.brutalist-table tr:hover td {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Grayscale filter to style standard OSM tiles as light-theme brutalist maps without watermarks */
+.leaflet-tile {
+  filter: grayscale(100%) contrast(1.05) brightness(0.97);
+}
