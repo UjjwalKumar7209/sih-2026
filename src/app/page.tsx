@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   RefreshCw, 
-  Filter
+  Filter,
+  Download
 } from 'lucide-react';
 
 import MapComponent from '@/components/MapComponent';
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const [mode, setMode] = useState<'LIVE' | 'DEMO'>('DEMO');
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   // Selected detection for detailed analysis
   const [selectedDetection, setSelectedDetection] = useState<Detection | null>(null);
@@ -52,6 +54,51 @@ export default function Dashboard() {
   const [minFRP, setMinFRP] = useState<number>(0);
   const [minPersistence, setMinPersistence] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Register Service Worker and PWA Install Prompt handlers
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('ServiceWorker registered with scope:', reg.scope))
+          .catch((err) => console.error('ServiceWorker registration failed:', err));
+      }
+
+      const handleBeforeInstall = (e: any) => {
+        e.preventDefault();
+        setDeferredPrompt(e);
+      };
+      window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+      const handleAppInstalled = () => {
+        setDeferredPrompt(null);
+        console.log('App was successfully installed');
+      };
+      window.addEventListener('appinstalled', handleAppInstalled);
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      };
+    }
+  }, []);
+
+  // Handle programmatic install or instruction fallback
+  const handleInstallPWA = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User prompt choice: ${outcome}`);
+      setDeferredPrompt(null);
+    } else {
+      alert(
+        "PWA INSTALLATION GUIDE:\n\n" +
+        "• Desktop (Chrome/Edge/Brave): Click the Install icon inside the address bar (right side of search bar).\n" +
+        "• Mobile Android: Tap Chrome's menu (three dots) -> select 'Install app' or 'Add to Home screen'.\n" +
+        "• Mobile Safari (iOS): Tap the Share button (bottom toolbar) -> scroll down and choose 'Add to Home Screen'."
+      );
+    }
+  };
 
   // Fetch Telemetry Data
   const fetchTelemetry = async (targetMode: 'LIVE' | 'DEMO') => {
@@ -217,6 +264,16 @@ export default function Dashboard() {
 
         {/* Right Side: Integrated Status Panel */}
         <div className="flex items-center gap-4">
+          {/* Download App Button */}
+          <button 
+            onClick={handleInstallPWA}
+            className="brutalist-button py-1 px-3 flex items-center gap-1.5 text-xs text-black border border-black hover:bg-black hover:text-white font-mono transition-colors"
+            title="Install this application locally"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download App</span>
+          </button>
+
           {/* Status Dot */}
           <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--border)] p-1 px-3">
             <span className={`w-2 h-2 rounded-full inline-block ${

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Industrial Fire AI - Satellite Monitoring",
   description: "Satellite-based industrial thermal source detection and hazard monitoring platform",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Fire AI",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1a1b20",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
