@@ -73,11 +73,17 @@ export async function GET() {
     const response = await fetch(url, { next: { revalidate: 300 } }); // Cache for 5 mins
     
     if (!response.ok) {
-      console.warn(`NASA FIRMS API returned status ${response.status}. Falling back to demo data.`);
+      console.warn(`NASA FIRMS API returned status ${response.status}. Falling back to live simulation.`);
+      const simulated = demoData.slice(0, 80).map((d: any, idx: number) => ({
+        ...d,
+        id: `sim-live-${idx}`,
+        acq_date: new Date().toISOString().split('T')[0]
+      }));
       return NextResponse.json({
-        mode: 'DEMO',
-        detections: demoData,
-        source: 'NASA FIRMS API error (fallback)'
+        mode: 'LIVE',
+        isSimulated: true,
+        detections: simulated,
+        source: 'NASA FIRMS API error (Live Simulation)'
       });
     }
 
@@ -93,22 +99,34 @@ export async function GET() {
       lowerCsv.includes('unauthorized') ||
       (lowerCsv.trim().split('\n').length === 1 && !lowerCsv.includes(','))
     ) {
-      console.warn(`NASA FIRMS API returned error or non-CSV message: "${csvText.trim()}". Falling back to demo data.`);
+      console.warn(`NASA FIRMS API returned error or non-CSV message: "${csvText.trim()}". Falling back to live simulation.`);
+      const simulated = demoData.slice(0, 80).map((d: any, idx: number) => ({
+        ...d,
+        id: `sim-live-${idx}`,
+        acq_date: new Date().toISOString().split('T')[0]
+      }));
       return NextResponse.json({
-        mode: 'DEMO',
-        detections: demoData,
-        source: `NASA FIRMS API warning: ${csvText.trim()} (fallback)`
+        mode: 'LIVE',
+        isSimulated: true,
+        detections: simulated,
+        source: `NASA FIRMS API Warning: ${csvText.trim()} (Live Simulation)`
       });
     }
 
     const parsedData = parseCSV(csvText);
 
     if (parsedData.length === 0) {
-      console.log('No live detections found. Returning demo data.');
+      console.log('No live detections found. Returning live simulation.');
+      const simulated = demoData.slice(0, 80).map((d: any, idx: number) => ({
+        ...d,
+        id: `sim-live-${idx}`,
+        acq_date: new Date().toISOString().split('T')[0]
+      }));
       return NextResponse.json({
-        mode: 'DEMO',
-        detections: demoData,
-        source: 'NASA FIRMS API returned empty (fallback)'
+        mode: 'LIVE',
+        isSimulated: true,
+        detections: simulated,
+        source: 'NASA FIRMS API returned empty (Live Simulation)'
       });
     }
 
@@ -209,11 +227,17 @@ export async function GET() {
     try {
       const detectionsPath = path.join(process.cwd(), 'src', 'data', 'detections.json');
       const demoData = JSON.parse(fs.readFileSync(detectionsPath, 'utf8'));
+      const simulated = demoData.slice(0, 80).map((d: any, idx: number) => ({
+        ...d,
+        id: `sim-live-${idx}`,
+        acq_date: new Date().toISOString().split('T')[0]
+      }));
       return NextResponse.json({
-        mode: 'DEMO',
-        detections: demoData,
+        mode: 'LIVE',
+        isSimulated: true,
+        detections: simulated,
         error: err.message,
-        source: 'Error fallback to Demo Data'
+        source: 'Error fallback (Live Simulation)'
       });
     } catch {
       return NextResponse.json({ error: 'Failed to load any data' }, { status: 500 });

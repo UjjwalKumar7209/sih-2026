@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [mode, setMode] = useState<'LIVE' | 'DEMO'>('DEMO');
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLiveSimulated, setIsLiveSimulated] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   // Selected detection for detailed analysis
@@ -162,6 +163,7 @@ export default function Dashboard() {
       
       if (targetMode === 'LIVE') {
         setMode(data.mode);
+        setIsLiveSimulated(!!data.isSimulated);
         fetchedDetections = data.detections || [];
         
         // For live data, run dynamic inference via server route if they don't have predictions pre-filled
@@ -201,6 +203,7 @@ export default function Dashboard() {
         setDetections(augmentDetections(processed));
       } else {
         setMode('DEMO');
+        setIsLiveSimulated(false);
         fetchedDetections = data || [];
         setDetections(augmentDetections(fetchedDetections));
       }
@@ -212,6 +215,7 @@ export default function Dashboard() {
       console.error('Telemetry fetch error:', err);
       // Fallback silently to Demo mode
       setMode('DEMO');
+      setIsLiveSimulated(false);
       try {
         const fallbackRes = await fetch('/api/detections?limit=1500');
         if (fallbackRes.ok) {
@@ -345,11 +349,13 @@ export default function Dashboard() {
           {/* Status Dot */}
           <div className="flex items-center gap-1 sm:gap-1.5 bg-[var(--surface)] border border-[var(--border)] p-1 px-1.5 sm:px-2.5 shrink-0">
             <span className={`w-1.5 h-1.5 rounded-full inline-block ${
-              mode === 'LIVE' ? 'bg-[#008f47] animate-pulse' : 'bg-[#b56b00]'
+              mode === 'LIVE' 
+                ? (isLiveSimulated ? 'bg-[#b56b00]' : 'bg-[#008f47] animate-pulse') 
+                : 'bg-[#b56b00]'
             }`}></span>
             <span className="text-[9px] font-extrabold text-zinc-700 tracking-wider">
-              <span className="hidden sm:inline">{mode} FEED</span>
-              <span className="inline sm:hidden">{mode}</span>
+              <span className="hidden sm:inline">{mode}{isLiveSimulated ? ' (SIM)' : ''} FEED</span>
+              <span className="inline sm:hidden">{mode}{isLiveSimulated ? ' (SIM)' : ''}</span>
             </span>
           </div>
 
@@ -389,8 +395,22 @@ export default function Dashboard() {
 
       {/* Main content grid */}
       <main className="flex-1 p-4 space-y-4 max-w-[1600px] mx-auto w-full">
-        
-
+        {isLiveSimulated && (
+          <div className="border border-[var(--border)] bg-[#fffbeb] text-[#854d0e] p-3 text-xs font-mono flex items-center justify-between gap-3 brutalist-card">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-[#b56b00] rounded-full inline-block animate-ping"></span>
+              <span>
+                <strong>NASA API KEY OFFLINE:</strong> Running in <strong>Live Simulation Mode</strong> (using preprocessed active coordinates). To stream live NASA MODAPS/VIIRS satellite signals, configure a valid <code>FIRMS_MAP_KEY</code>.
+              </span>
+            </div>
+            <button 
+              onClick={() => setIsLiveSimulated(false)}
+              className="text-[10px] font-bold uppercase underline hover:text-[#b56b00] cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* KPI Panel */}
         <section className="grid grid-cols-2 md:grid-cols-5 gap-3 font-telemetry">
